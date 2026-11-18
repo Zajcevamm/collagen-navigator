@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2f6feb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Коллаген">
+<title>Коллаген-Навигатор — подбор по жалобам</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20192%20192'%3E%3Crect%20width='192'%20height='192'%20rx='32'%20fill='%232f6feb'/%3E%3Ctext%20x='96'%20y='132'%20font-size='112'%20text-anchor='middle'%20fill='%23fff'%20font-family='sans-serif'%20font-weight='bold'%3EK%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --card: #ffffff;
+    --text: #1f2a37;
+    --muted: #6b7280;
+    --primary: #2f6feb;
+    --primary-dark: #1e50c4;
+    --danger: #d94343;
+    --danger-bg: #fdecec;
+    --warn: #b7791f;
+    --warn-bg: #fff8e6;
+    --ok: #2f855a;
+    --ok-bg: #e9f7ef;
+    --border: #e5e9f0;
+    --radius: 14px;
+    --shadow: 0 1px 3px rgba(15,30,60,0.04);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  a { color: var(--primary); }
+  a:focus-visible, button:focus-visible, .option:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Шапка */
+  header.top {
+    background: linear-gradient(135deg, #2f6feb, #1e50c4);
+    color: #fff;
+    padding: 32px 20px 28px;
+    padding-top: calc(32px + env(safe-area-inset-top));
+    text-align: center;
+  }
+  header.top h1 { margin: 0 0 6px; font-size: 1.9rem; }
+  header.top p { margin: 0 0 14px; opacity: 0.92; }
+  .top-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .top-actions a {
+    color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,0.5);
+    padding: 8px 14px; border-radius: 99px; font-size: 0.9rem;
+    min-height: 44px; display: inline-flex; align-items: center;
+  }
+  .top-actions a:hover { background: rgba(255,255,255,0.15); }
+
+  main { max-width: 780px; margin: 0 auto; padding: 20px 16px 60px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { margin: 0 0 12px; font-size: 1.15rem; }
+  .card h3 { margin: 16px 0 6px; font-size: 1rem; }
+  .muted { color: var(--muted); font-size: 0.92rem; }
+
+  /* Кнопки — минимум 44px для пальца */
+  button, .btn {
+    font: inherit; cursor: pointer; border: none; border-radius: 10px;
+    padding: 12px 20px; font-weight: 600; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-ghost { background: transparent; color: var(--primary); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: #f0f4ff; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* Формы */
+  fieldset { border: none; padding: 0; margin: 0 0 16px; }
+  fieldset > legend { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.98rem; }
+  .option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 8px; cursor: pointer;
+    min-height: 44px;
+23:57
+transition: background 0.12s ease, border-color 0.12s ease;
+  }
+  .option:hover { background: #f7f9ff; }
+  .option input { margin-top: 3px; flex-shrink: 0; width: 18px; height: 18px; }
+  .option:has(input:checked) { border-color: var(--primary); background: #eef4ff; }
+
+  .progress { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 18px; }
+  .progress > div { height: 100%; background: var(--primary); width: 0; transition: width 0.25s ease; }
+
+  /* Плашки */
+  .flag-danger { background: var(--danger-bg); border: 1px solid #f5c2c2; border-left: 4px solid var(--danger); }
+  .flag-danger h2 { color: var(--danger); }
+  .flag-warn { background: var(--warn-bg); border-left: 4px solid var(--warn); }
+  .flag-ok { background: var(--ok-bg); border-left: 4px solid var(--ok); }
+  .disclaimer {
+    background: #fff8e6; border: 1px solid #f2e1b3; border-radius: var(--radius);
+    padding: 12px 16px; font-size: 0.92rem; color: #6b5516; margin-bottom: 14px;
+  }
+
+  .badge {
+    display: inline-block; font-size: 0.78rem; padding: 3px 10px;
+    border-radius: 99px; background: #eef4ff; color: var(--primary);
+    font-weight: 600; margin-right: 6px; margin-bottom: 4px;
+  }
+  .badge.mid { background: #fff3d6; color: #8a6d1f; }
+  .badge.low { background: #f2f2f2; color: #666; }
+  .result-card { border-left: 4px solid var(--primary); }
+
+  /* Источники и слайды */
+  .sources {
+    font-size: 0.88rem; color: var(--muted); margin-top: 12px;
+    padding-top: 10px; border-top: 1px dashed var(--border);
+  }
+  .sources a { color: var(--primary); text-decoration: none; }
+  .sources a:hover { text-decoration: underline; }
+  .slides-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.9rem; margin-top: 8px;
+  }
+
+  details { margin: 6px 0; }
+  details summary { cursor: pointer; font-weight: 600; padding: 10px 0; min-height: 44px; display: flex; align-items: center; }
+  details p { margin: 6px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #f7f9fc; font-weight: 600; }
+
+  /* Липкая панель на мобильном */
+  .sticky-cta {
+    position: sticky; bottom: 0; z-index: 10;
+    padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    background: rgba(247,249,252,0.95);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .sticky-cta button { width: 100%; }
+  @media (max-width: 720px) {
+    .sticky-cta { display: block; }
+    header.top h1 { font-size: 1.45rem; }
+    .card { padding: 14px; }
+    main { padding: 14px 12px 80px; }
+    .btn-row button, .btn-row a { flex: 1 1 100%; }
+  }
+
+  /* Отзывы */
+  .review-form input, .review-form textarea, .review-form select {
+    width: 100%; font: inherit; padding: 12px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: #fff; color: var(--text);
+    min-height: 44px;
+  }
+  .review-form textarea { min-height: 96px; resize: vertical; }
+  .review-form label { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 0.92rem; }
+  .review-list { margin-top: 12px; }
+  .review-item {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 8px; background: #fbfcfe;
+  }
+  .review-item .meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+  .stars { color: #f2b53a; font-size: 1rem; }
+
+  .hidden { display: none !important; }
+  footer.site-footer {
+    text-align: center; color: var(--muted);
+    font-size: 0.85rem; padding: 20px 16px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  /* Печать */
+  .print-only { display: none; }
+  @media print {
+    header.top, .top-actions, .btn-row, .sticky-cta, .disclaimer, footer.site-footer,
+    #form-view, details, .review-form, .no-print { display: none !important; }
+23:57
+body { background: #fff; padding: 0; }
+    main { max-width: none; padding: 0; }
+    .card { break-inside: avoid; box-shadow: none; border-color: #ccc; }
+    .print-only { display: block !important; }
+    .print-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+    .print-header h1 { margin: 0 0 4px; font-size: 1.3rem; }
+    .print-header .meta { font-size: 0.85rem; color: #555; }
+    a { color: #000; text-decoration: underline; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Коллаген-Навигатор</h1>
+  <p>Подберите цель, форму и способ применения коллагена — без самодиагностики</p>
+  <div class="top-actions">
+    <a id="top-presentation-link" href="#" target="_blank" rel="noopener">📊  Открыть презентацию</a>
+    <a href="#references-anchor">📚  Источники</a>
+  </div>
+</header>
+
+<main>
+  <div class="disclaimer no-print">
+    ⚠️  Это не диагностика и не назначение лечения. Сайт помогает сориентироваться
+    в типах и формах коллагена. При любых сомнениях обратитесь к врачу.
+  </div>
+
+  <!-- Форма -->
+  <section id="form-view">
+    <div class="progress"><div id="progress-bar"></div></div>
+
+    <form id="quiz" novalidate>
+      <div class="card">
+        <h2>1. О вас</h2>
+        <fieldset>
+          <legend>Возрастная группа</legend>
+          <label class="option"><input type="radio" name="age" value="<18"> До 18 лет</label>
+          <label class="option"><input type="radio" name="age" value="18-30"> 18–30 лет</label>
+          <label class="option"><input type="radio" name="age" value="30-50"> 30–50 лет</label>
+          <label class="option"><input type="radio" name="age" value="50+"> Старше 50 лет</label>
+        </fieldset>
+        <fieldset>
+          <legend>Беременность или лактация</legend>
+          <label class="option"><input type="radio" name="pregnancy" value="yes"> Да</label>
+          <label class="option"><input type="radio" name="pregnancy" value="no"> Нет</label>
+          <label class="option"><input type="radio" name="pregnancy" value="na"> Не применимо</label>
+        </fieldset>
+        <fieldset>
+          <legend>Аллергии на сырьё (рыба, КРС, свинина)</legend>
+          <label class="option"><input type="radio" name="allergy" value="yes"> Да</label>
+          <label class="option"><input type="radio" name="allergy" value="no"> Нет</label>
+          <label class="option"><input type="radio" name="allergy" value="unknown"> Не знаю</label>
+        </fieldset>
+      </div>
+
+      <div class="card">
+        <h2>2. Жалобы</h2>
+        <p class="muted">Выберите всё, что беспокоит.</p>
+        <fieldset>
+          <legend>Что вас беспокоит?</legend>
+          <label class="option"><input type="checkbox" name="complaint" value="skin"> Сухость кожи, снижение упругости, морщины</label>
+          <label class="option"><input type="checkbox" name="complaint" value="joints"> Боли или скованность в суставах</label>
+          <label class="option"><input type="checkbox" name="complaint" value="trauma"> Травмы, медленное заживление</label>
+          <label class="option"><input type="checkbox" name="complaint" value="gums"> Проблемы с дёснами, после удаления зуба</label>
+          <label class="option"><input type="checkbox" name="complaint" value="vessels"> Сосуды, вены</label>
+          <label class="option"><input type="checkbox" name="complaint" value="intestine"> Кишечник, слизистая</label>
+        </fieldset>
+      </div>
+
+      <div class="card">
+        <h2>3. Красные флаги</h2>
+        <p class="muted">Если что-то отмечено — сайт посоветует сначала обратиться к врачу.</p>
+        <fieldset>
+          <legend>Есть ли что-то из этого?</legend>
+          <label class="option"><input type="checkbox" name="flag" value="acute"> Острая травма</label>
+          <label class="option"><input type="checkbox" name="flag" value="inflam"> Отёк, покраснение, жар в суставе</label>
+23:57
+<label class="option"><input type="checkbox" name="flag" value="bleed"> Кровотечение</label>
+          <label class="option"><input type="checkbox" name="flag" value="wound"> Незаживающая рана</label>
+          <label class="option"><input type="checkbox" name="flag" value="chronic"> Онкологическое или тяжёлое хроническое заболевание</label>
+        </fieldset>
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Показать результат</button>
+          <button type="button" id="reset-btn" class="btn-ghost">Сбросить</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- Результат -->
+  <section id="result-view" class="hidden"></section>
+
+  <!-- Справка -->
+  <section id="reference" class="hidden">
+    <div class="card">
+      <h2>Справка: типы коллагена</h2>
+      <table>
+        <thead><tr><th>Тип</th><th>Где</th><th>Что делает</th></tr></thead>
+        <tbody>
+          <tr><td>I</td><td>Кожа, кости, сухожилия, дентин</td><td>Прочность, матрица для минерализации</td></tr>
+          <tr><td>II</td><td>Хрящ</td><td>Удерживает протеогликаны и воду, амортизация</td></tr>
+          <tr><td>III</td><td>Сосуды, кожа, кишечник</td><td>Эластичность, ранозаживление</td></tr>
+        </tbody>
+      </table>
+      <h3>Формы</h3>
+      <details><summary>Гидролизованный коллаген</summary>
+        <p>Короткие пептиды и аминокислоты. Часто используют в добавках для поддержки кожи и суставов. Для эффекта нужны регулярность и достаточная доза.</p>
+      </details>
+      <details><summary>Неденатурированный коллаген II типа</summary>
+        <p>Сохраняет трёхспиральную структуру. Обсуждается при остеоартрите. Применять только после консультации с врачом.</p>
+      </details>
+      <details><summary>Медицинские изделия (губки, мембраны, гели)</summary>
+        <p>Используются только специалистом в стоматологии, травматологии, хирургии.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Мифы</h2>
+      <details><summary>«Коллаген = молодость»</summary>
+        <p>Коллаген — структурный белок, а не эликсир. На синтез влияют питание, сон, SPF, отказ от курения и общее здоровье.</p>
+      </details>
+      <details><summary>«Любой коллаген лечит суставы»</summary>
+        <p>Разные типы и формы имеют разные доказательства. Неденатурированный II тип — не то же самое, что гидролизат «для поддержки».</p>
+      </details>
+      <details><summary>«Инъекции можно выбрать по анкете»</summary>
+        <p>Нет. Инъекционные методики назначает и выполняет специалист.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Красные флаги — когда к врачу</h2>
+      <ul>
+        <li>Острая травма, отёк, деформация конечности</li>
+        <li>Отёк, покраснение, жар в суставе</li>
+        <li>Кровотечение, незаживающая рана</li>
+        <li>Беременность и лактация</li>
+        <li>Дети и подростки</li>
+        <li>Аллергии на сырьё</li>
+        <li>Онкологические и тяжёлые хронические заболевания</li>
+      </ul>
+      <p class="muted">Любые добавки и процедуры — только после консультации с врачом.</p>
+    </div>
+
+    <div class="card" id="reviews-section">
+      <h2>Отзывы пользователей и врачей</h2>
+      <p class="muted">Поделитесь, помог ли сайт. Отзывы сохраняются локально в вашем браузере (если не подключён общий сбор).</p>
+
+      <form class="review-form" id="review-form">
+        <label for="rev-name">Имя (необязательно)</label>
+        <input id="rev-name" name="name" type="text" maxlength="40" placeholder="Как к вам обращаться">
+
+        <label for="rev-role">Вы</label>
+        <select id="rev-role" name="role">
+          <option value="user">Пользователь</option>
+          <option value="doctor">Врач / специалист</option>
+        </select>
+
+        <label for="rev-rating">Оценка</label>
+        <select id="rev-rating" name="rating">
+          <option value="5">★★★★★ — отлично</option>
+          <option value="4">★★★★ — хорошо</option>
+23:57
+<option value="3">★★★ — нормально</option>
+          <option value="2">★★ — так себе</option>
+          <option value="1">★ — плохо</option>
+        </select>
+
+        <label for="rev-comment">Комментарий</label>
+        <textarea id="rev-comment" name="comment" maxlength="500" placeholder="Что помогло / чего не хватает"></textarea>
+
+        <div class="btn-row">
+          <button type="submit" class="btn-primary">Отправить отзыв</button>
+        </div>
+        <p class="muted" id="review-status" style="margin-top:8px"></p>
+      </form>
+
+      <div class="review-list" id="review-list"></div>
+    </div>
+
+    <div class="card" id="references-anchor">
+      <h2>Используемая литература</h2>
+      <ol id="references-list" class="muted"></ol>
+    </div>
+
+    <div class="card">
+      <h2>Связаться с автором проекта</h2>
+      <p>Проект выполнен в рамках школьной исследовательской работы. Если вы врач и хотите оставить экспертный отзыв — напишите через форму выше или на почту проекта.</p>
+      <p><a id="contact-mail" href="#">—</a></p>
+    </div>
+  </section>
+</main>
+
+<div class="sticky-cta no-print" id="sticky-cta">
+  <button type="button" class="btn-primary" onclick="scrollToFormOrTop()">К анкете ↑</button>
+</div>
+
+<footer class="site-footer">
+  Коллаген-Навигатор · Учебный проект · Не является медицинским изделием<br>
+  <a id="footer-presentation-link" href="#" target="_blank" rel="noopener">Презентация проекта</a>
+</footer>
+
+<script>
+/* ============================================================
+   Конфигурация сайта
+   ============================================================ */
+const SITE_CONFIG = {
+  // Ссылка на презентацию: PDF в той же папке, Google Slides, Canva и т.п.
+  // Примеры:
+  //   'presentation.pdf'
+  //   'https://docs.google.com/presentation/d/XXXX/edit'
+  //   'https://www.canva.com/design/XXXX/view'
+  presentationUrl: 'presentation.pdf',
+  presentationTitle: 'Презентация «Белок коллаген и его типы»',
+  // Почта для отзывов, если не подключён endpoint
+  feedbackEmail: 'collagen-project@example.com',
+  // URL Apps Script для сбора отзывов (см. инструкцию ниже). Оставьте пустым для локального режима.
+  feedbackEndpoint: '',
+  // 'plausible' | 'yandex' | 'none'
+  analytics: 'none',
+  // Аналитика: домен Plausible или ID счётчика Яндекс.Метрики
+  analyticsPlausibleDomain: '',
+  analyticsYandexId: ''
+};
+
+const STORAGE_KEYS = {
+  answers: 'collagen-nav-answers-v1',
+  result: 'collagen-nav-result-v1',
+  reviews: 'collagen-nav-reviews-v1'
+};
+
+/* ============================================================
+   Источники
+   ============================================================ */
+const REFERENCES = {
+  ricardBlum2011: {
+    short: 'Ricard-Blum, 2011',
+    full: 'Ricard-Blum S. The Collagen Family // Cold Spring Harb Perspect Biol. 2011. Vol. 3(1). a004978.',
+    url: 'https://doi.org/10.1101/cshperspect.a004978'
+  },
+  gelse2003: {
+    short: 'Gelse et al., 2003',
+    full: 'Gelse K., Pöschl E., Aigner T. Collagens — structure, function, and biosynthesis // Adv Drug Deliv Rev. 2003. Vol. 55(12). P. 1531–1546.',
+    url: 'https://doi.org/10.1016/j.addr.2003.08.002'
+  },
+  potekhina2016: {
+    short: 'Потехина, 2016',
+    full: 'Потехина Ю. П. Структура и функции коллагена // Российский остеопатический журнал. 2016. № 1–2 (32–33). С. 87–99.',
+    url: 'https://doi.org/10.32885/2220-0975-2016-1-2-87-99'
+  },
+  kushnikova2026: {
+    short: 'Кушникова и др., 2026',
+    full: 'Кушникова И. П., Батырова К. М. Неденатурированный коллаген II типа при остеоартрите // Вестник СурГУ. Медицина. 2026. №1.',
+    url: 'https://cyberleninka.ru/article/n/nedenaturirovannyy-kollagen-ii-tipa-pri-osteoartrite-vozmozhnosti-primeneniya-v-kompleksnoy-terapii-u-komorbidnyh-bolnyh'
+  },
+  mienaltowski2014: {
+    short: 'Mienaltowski & Birk, 2014',
+    full: 'Mienaltowski M. J., Birk D. E. Structure, physiology, and biochemistry of collagens // Adv Exp Med Biol. 2014. Vol. 802. P. 5–29.',
+23:57
+url: 'https://doi.org/10.1007/978-94-007-7893-1_2'
+  },
+  jiang2025: {
+    short: 'Jiang et al., 2025',
+    full: 'Jiang J. et al. Preparation and evaluation of an injectable HAp/Col I composite for promoting tendon-to-bone healing in ACL reconstruction // Mater Today Bio. 2025. Vol. 30. 101076.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/41281665/'
+  },
+  lugli2026: {
+    short: 'Lugli et al., 2026',
+    full: 'Lugli E. et al. A New Perspective on Osteogenesis Imperfecta // Int J Mol Sci. 2026. Vol. 27(2). 745.',
+    url: 'https://doi.org/10.3390/ijms27020745'
+  },
+  thirumalaivasan2025: {
+    short: 'Thirumalaivasan et al., 2025',
+    full: 'Thirumalaivasan N. et al. Collagen-Composite Scaffolds for Alveolar Bone and Dental Tissue Regeneration // Dentistry Journal. 2025. Vol. 13(9). 396.',
+    url: 'https://doi.org/10.3390/dj13090396'
+  },
+  vitagliano2025: {
+    short: 'Vitagliano et al., 2025',
+    full: 'Vitagliano L. et al. Determinants of Chain Selection and Staggering in Heterotrimeric Collagens // Int J Mol Sci. 2025. Vol. 26(20). 9867.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/?term=Determinants+of+Chain+Selection+and+Staggering+in+Heterotrimeric+Collagens'
+  }
+};
+
+/* ============================================================
+   Данные по жалобам (с источниками и номерами слайдов)
+   ============================================================ */
+const COMPLAINT_DATA = {
+  skin: {
+    title: 'Кожа: сухость, снижение упругости, морщины',
+    types: 'I и III типы',
+    form: 'Гидролизованный коллаген — в добавках; косметика с коллагеном — местно',
+    evidence: 'low',
+    evidenceText: 'Низкая / средняя',
+    points: [
+      'Коллаген в косметике работает как увлажнитель, но не «встраивается» в дерму.',
+      'Пероральные добавки — поддержка, а не замена уходу.',
+      'SPF, сон, питание и отказ от курения влияют на кожу сильнее, чем любая добавка.'
+    ],
+    doctor: 'Если есть дерматоз, аллергия, беременность — сначала к врачу.',
+    sources: ['ricardBlum2011', 'gelse2003', 'potekhina2016'],
+    slides: '3–4'
+  },
+  joints: {
+    title: 'Суставы: боли или скованность',
+    types: 'II тип',
+    form: 'Неденатурированный коллаген II типа — обсудить с врачом; гидролизованный — как поддержка',
+    evidence: 'mid',
+    evidenceText: 'Средняя',
+    points: [
+      'Неденатурированный II тип сохраняет трёхспиральную структуру — обсуждается при остеоартрите.',
+      'Гидролизованный — короткие пептиды, чаще для поддержки.',
+      'Доказательства ограничены; при боли важны диагностика, ЛФК и работа с врачом.'
+    ],
+    doctor: 'Отёк, жар, покраснение в суставе — к врачу в первую очередь.',
+    sources: ['kushnikova2026', 'ricardBlum2011', 'gelse2003'],
+    slides: '5'
+  },
+  trauma: {
+    title: 'Травмы, медленное заживление',
+    types: 'I тип',
+    form: 'Медицинские изделия (губки, мембраны, гели) — только специалист',
+    evidence: 'mid',
+    evidenceText: 'Средняя',
+    points: [
+      'Коллагеновые губки/мембраны стимулируют прикрепление клеток.',
+      'Самостоятельно выбирать изделия нельзя — это медицинское назначение.',
+      'При острой травме сначала диагностика.'
+    ],
+    doctor: 'Острая травма, кровотечение, деформация — к врачу.',
+    sources: ['jiang2025', 'gelse2003'],
+    slides: '6–7'
+  },
+  gums: {
+    title: 'Дёсны, после удаления зуба',
+    types: 'I и III типы',
+    form: 'Мембраны, губки, гели — только стоматолог',
+    evidence: 'mid',
+    evidenceText: 'Средняя',
+    points: [
+      'Коллагеновые мембраны служат барьером для эпителия при регенерации кости.',
+      'Гемостатические губки останавливают кровотечение после вмешательств.',
+      'Смеси I и III типа объединяют прочность и барьерные свойства.'
+    ],
+    doctor: 'Только по назначению стоматолога.',
+    sources: ['thirumalaivasan2025', 'ricardBlum2011'],
+    slides: '7'
+  },
+  vessels: {
+    title: 'Сосуды, вены',
+    types: 'III тип',
+    form: 'Только обсуждение с врачом; самостоятельный приём не рекомендован',
+23:57
+evidence: 'low',
+    evidenceText: 'Низкая',
+    points: [
+      'III тип поддерживает эластичность сосудов.',
+      'Доказательств для самолечения сосудистых проблем недостаточно.',
+      'Сосудистые жалобы требуют диагностики.'
+    ],
+    doctor: 'Сосудистые жалобы — к врачу, не по анкете.',
+    sources: ['ricardBlum2011', 'gelse2003'],
+    slides: '4'
+  },
+  intestine: {
+    title: 'Кишечник, слизистая',
+    types: 'III тип',
+    form: 'Поддержка — с осторожностью, после консультации',
+    evidence: 'low',
+    evidenceText: 'Низкая',
+    points: [
+      'III тип есть в стенке кишечника.',
+      'Прямых доказательств для самолечения мало.',
+      'Жалобы ЖКТ — повод обратиться к врачу.'
+    ],
+    doctor: 'Жалобы ЖКТ — к гастроэнтерологу.',
+    sources: ['ricardBlum2011', 'mienaltowski2014'],
+    slides: '4'
+  }
+};
+
+/* ============================================================
+   Утилиты
+   ============================================================ */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+const form = $('#quiz');
+const formView = $('#form-view');
+const resultView = $('#result-view');
+const reference = $('#reference');
+const progressBar = $('#progress-bar');
+
+function getChecked(name) {
+  return $$(`input[name="${name}"]:checked`, form).map(el => el.value);
+}
+
+function getRadio(name) {
+  const el = $(`input[name="${name}"]:checked`, form);
+  return el ? el.value : '';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+/* ============================================================
+   Презентация: подстановка ссылок
+   ============================================================ */
+function setupPresentationLinks() {
+  const url = SITE_CONFIG.presentationUrl || '#';
+  const links = ['top-presentation-link', 'footer-presentation-link'];
+  links.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.href = url;
+      el.title = SITE_CONFIG.presentationTitle;
+      if (url === '#') el.classList.add('hidden');
+    }
+  });
+}
+
+/* ============================================================
+   Прогресс + localStorage
+   ============================================================ */
+function updateProgress() {
+  const groups = ['age', 'pregnancy', 'allergy', 'complaint', 'flag'];
+  let done = 0;
+  groups.forEach(g => {
+    if ($(`input[name="${g}"]:checked`, form)) done++;
+  });
+  progressBar.style.width = Math.round(done / groups.length * 100) + '%';
+}
+
+function collectAnswers() {
+  return {
+    age: getRadio('age'),
+    pregnancy: getRadio('pregnancy'),
+    allergy: getRadio('allergy'),
+    complaints: getChecked('complaint'),
+    flags: getChecked('flag'),
+    savedAt: new Date().toISOString()
+  };
+}
+
+function saveAnswers() {
+  try { localStorage.setItem(STORAGE_KEYS.answers, JSON.stringify(collectAnswers())); }
+  catch (e) { /* приватный режим */ }
+}
+
+function restoreAnswers() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.answers) || 'null'); }
+  catch (e) { return; }
+  if (!saved) return;
+
+  const setRadio = (name, value) => {
+    if (!value) return;
+    const el = form.querySelector(`input[name="${name}"][value="${CSS.escape(value)}"]`);
+    if (el) el.checked = true;
+  };
+  const setCheckboxes = (name, values) => {
+    (values || []).forEach(v => {
+      const el = form.querySelector(`input[name="${name}"][value="${CSS.escape(v)}"]`);
+      if (el) el.checked = true;
+    });
+  };
+  setRadio('age', saved.age);
+  setRadio('pregnancy', saved.pregnancy);
+  setRadio('allergy', saved.allergy);
+  setCheckboxes('complaint', saved.complaints);
+  setCheckboxes('flag', saved.flags);
+  updateProgress();
+}
+
+function saveResult(answers) {
+  try { localStorage.setItem(STORAGE_KEYS.result, JSON.stringify(answers)); }
+  catch (e) {}
+}
+
+function restoreResultIfAny() {
+23:57
+try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.result) || 'null');
+    if (saved && saved.complaints && saved.complaints.length) renderResult(saved, { fromRestore: true });
+  } catch (e) {}
+}
+
+/* ============================================================
+   Рендер результата
+   ============================================================ */
+function renderSources(keys) {
+  if (!keys || !keys.length) return '';
+  const items = keys
+    .map(k => REFERENCES[k])
+    .filter(Boolean)
+    .map(r => `<a href="${r.url}" target="_blank" rel="noopener">${escapeHtml(r.short)}</a>`)
+    .join(', ');
+  return `<div class="sources"><strong>Источники:</strong> ${items}</div>`;
+}
+
+function renderSlidesLink(slides) {
+  if (!slides || !SITE_CONFIG.presentationUrl || SITE_CONFIG.presentationUrl === '#') return '';
+  return `<a class="slides-link" href="${SITE_CONFIG.presentationUrl}" target="_blank" rel="noopener">
+    📊  Подробнее в презентации: слайды ${escapeHtml(slides)}
+  </a>`;
+}
+
+function renderFlags(answers) {
+  const parts = [];
+  if (answers.flags && answers.flags.length > 0) {
+    parts.push(`
+      <div class="card flag-danger">
+        <h2>Сначала — к врачу</h2>
+        <p>Вы отметили признаки, при которых подбор добавок и процедур «по анкете» недопустим. Это не значит, что всё плохо — это значит, что нужна диагностика.</p>
+        <p>Обратитесь к терапевту или профильному специалисту. Обсудите с ним любые добавки, кремы и процедуры.</p>
+      </div>`);
+  }
+  if (answers.age === '<18') {
+    parts.push(`<div class="card flag-warn"><h2>Возраст до 18</h2><p>Для детей и подростков любые добавки и процедуры — только по назначению врача. Рацион и сон важнее.</p></div>`);
+  }
+  if (answers.pregnancy === 'yes') {
+    parts.push(`<div class="card flag-warn"><h2>Беременность / лактация</h2><p>Любые добавки и процедуры — только после консультации с врачом.</p></div>`);
+  }
+  if (answers.allergy === 'yes') {
+    parts.push(`<div class="card flag-warn"><h2>Аллергия на сырьё</h2><p>Уточните источник коллагена: рыба, КРС, свинина. Подбирайте вместе с врачом или фармацевтом.</p></div>`);
+  } else if (answers.allergy === 'unknown') {
+    parts.push(`<div class="card flag-warn"><h2>Аллергия не известна</h2><p>Перед приёмом добавок уточните аллергологический анамнез.</p></div>`);
+  }
+  return parts.join('');
+}
+
+function renderComplaintCards(answers) {
+  return (answers.complaints || []).map(key => {
+    const d = COMPLAINT_DATA[key];
+    if (!d) return '';
+    const evClass = d.evidence === 'mid' ? 'mid' : (d.evidence === 'low' ? 'low' : '');
+    return `
+      <div class="card result-card">
+        <h2>${escapeHtml(d.title)}</h2>
+        <p>
+          <span class="badge">Типы: ${escapeHtml(d.types)}</span>
+          <span class="badge ${evClass}">Доказательность: ${escapeHtml(d.evidenceText)}</span>
+        </p>
+        <h3>Форма / путь</h3>
+        <p>${escapeHtml(d.form)}</p>
+        <h3>Что важно</h3>
+        <ul>${d.points.map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+        <h3>Когда к врачу</h3>
+        <p>${escapeHtml(d.doctor)}</p>
+        ${renderSlidesLink(d.slides)}
+        ${renderSources(d.sources)}
+      </div>`;
+  }).join('');
+}
+
+function renderPrintHeader() {
+  const now = new Date();
+  const dateStr = now.toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
+  return `
+    <div class="print-header print-only">
+      <h1>Коллаген-Навигатор — результат подбора</h1>
+      <div class="meta">Дата: ${escapeHtml(dateStr)} · Учебный проект · Не является медицинским заключением</div>
+    </div>`;
+}
+
+function renderResult(answers, opts = {}) {
+  const parts = [];
+  parts.push(renderPrintHeader());
+  parts.push(`<div class="disclaimer no-print">⚠️  Это не диагностика. Результат носит информационный характер. При сомнениях обратитесь к врачу.</div>`);
+  parts.push(renderFlags(answers));
+  parts.push(renderComplaintCards(answers));
+
+  if (!answers.complaints || answers.complaints.length === 0) {
+23:57
+parts.push(`<div class="card"><h2>Жалобы не выбраны</h2><p>Вы отметили только красные флаги. Сначала — консультация врача. После — можно вернуться к анкете.</p></div>`);
+  }
+
+  const presentationBtn = (SITE_CONFIG.presentationUrl && SITE_CONFIG.presentationUrl !== '#')
+    ? `<a class="btn-ghost" href="${SITE_CONFIG.presentationUrl}" target="_blank" rel="noopener">📊  Открыть презентацию</a>`
+    : '';
+
+  parts.push(`
+    <div class="btn-row no-print">
+      <button type="button" class="btn-ghost" onclick="backToForm()">← Пройти заново</button>
+      <button type="button" class="btn-primary" onclick="window.print()">🖨 Сохранить для врача</button>
+      ${presentationBtn}
+    </div>`);
+
+  resultView.innerHTML = parts.join('');
+  formView.classList.add('hidden');
+  reference.classList.remove('hidden');
+  resultView.classList.remove('hidden');
+  if (!opts.fromRestore) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.backToForm = function () {
+  resultView.classList.add('hidden');
+  reference.classList.add('hidden');
+  formView.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.scrollToFormOrTop = function () {
+  const formVisible = !formView.classList.contains('hidden');
+  const target = formVisible ? $('#quiz') : (resultView.classList.contains('hidden') ? $('main') : resultView);
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+/* ============================================================
+   Список литературы
+   ============================================================ */
+function renderReferencesList() {
+  const list = $('#references-list');
+  if (!list) return;
+  const items = Object.values(REFERENCES).map(r => `
+    <li>${escapeHtml(r.full)} — <a href="${r.url}" target="_blank" rel="noopener">открыть</a></li>
+  `).join('');
+  list.innerHTML = items;
+}
+
+/* ============================================================
+   Отзывы
+   ============================================================ */
+function loadReviews() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.reviews) || '[]'); }
+  catch (e) { return []; }
+}
+
+function saveReviews(list) {
+  try { localStorage.setItem(STORAGE_KEYS.reviews, JSON.stringify(list)); }
+  catch (e) {}
+}
+
+function stars(n) {
+  return '★'.repeat(Number(n)) + '☆'.repeat(5 - Number(n));
+}
+
+function renderReviews() {
+  const box = $('#review-list');
+  if (!box) return;
+  const list = loadReviews();
+  if (!list.length) {
+    box.innerHTML = '<p class="muted">Пока отзывов нет. Будьте первым.</p>';
+    return;
+  }
+  box.innerHTML = list.slice().reverse().map(r => `
+    <div class="review-item">
+      <div class="meta">${escapeHtml(r.name || 'Аноним')} · ${r.role === 'doctor' ? 'врач' : 'пользователь'} · ${escapeHtml(new Date(r.date).toLocaleDateString('ru-RU'))}</div>
+      <div class="stars">${stars(r.rating)}</div>
+      <p>${escapeHtml(r.comment || '')}</p>
+    </div>
+  `).join('');
+}
+
+async function submitReview(data) {
+  // 1) Всегда сохраняем локально
+  const list = loadReviews();
+  list.push(data);
+  saveReviews(list);
+  renderReviews();
+
+  // 2) Если есть endpoint — отправляем на сервер
+  if (SITE_CONFIG.feedbackEndpoint) {
+    try {
+      await fetch(SITE_CONFIG.feedbackEndpoint, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data)
+      });
+      return { ok: true, channel: 'server' };
+    } catch (e) {
+      return { ok: false, channel: 'server', error: e };
+    }
+  }
+
+  // 3) Иначе — fallback на mailto
+  const body = encodeURIComponent(
+    `Имя: ${data.name || 'Аноним'}\nРоль: ${data.role}\nОценка: ${data.rating}\n\n${data.comment || ''}`
+  );
+  const subject = encodeURIComponent('Отзыв — Коллаген-Навигатор');
+  if (SITE_CONFIG.feedbackEmail) {
+    window.location.href = `mailto:${SITE_CONFIG.feedbackEmail}?subject=${subject}&body=${body}`;
+  }
+  return { ok: true, channel: 'mailto' };
+}
+23:57
+function setupReviewForm() {
+  const f = $('#review-form');
+  if (!f) return;
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = $('#review-status');
+    const name = $('#rev-name').value.trim();
+    const role = $('#rev-role').value;
+    const rating = $('#rev-rating').value;
+    const comment = $('#rev-comment').value.trim();
+    if (!comment && !name) {
+      status.textContent = 'Добавьте хотя бы имя или комментарий.';
+      return;
+    }
+    status.textContent = 'Отправляем…';
+    const res = await submitReview({
+      name, role, rating, comment,
+      date: new Date().toISOString()
+    });
+    if (res.ok) {
+      status.textContent = res.channel === 'mailto'
+        ? 'Отзыв сохранён локально. Открываем почтовый клиент для отправки автору…'
+        : 'Спасибо! Отзыв сохранён.';
+      f.reset();
+    } else {
+      status.textContent = 'Не удалось отправить. Отзыв сохранён локально.';
+    }
+  });
+}
+
+/* ============================================================
+   Аналитика (опционально)
+   ============================================================ */
+function setupAnalytics() {
+  if (SITE_CONFIG.analytics === 'plausible' && SITE_CONFIG.analyticsPlausibleDomain) {
+    const s = document.createElement('script');
+    s.defer = true;
+    s.dataset.domain = SITE_CONFIG.analyticsPlausibleDomain;
+    s.src = 'https://plausible.io/js/script.js';
+    document.head.appendChild(s);
+  }
+  if (SITE_CONFIG.analytics === 'yandex' && SITE_CONFIG.analyticsYandexId) {
+    (function (m, e, t, r, i, k, a) {
+      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); };
+      m[i].l = 1 * new Date();
+      k = e.createElement(t); a = e.getElementsByTagName(t)[0];
+      k.async = 1; k.src = r; a.parentNode.insertBefore(k, a);
+    })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+    window.ym(SITE_CONFIG.analyticsYandexId, 'init', { clickmap: true, trackLinks: true, accurateTrackBounce: true });
+  }
+}
+
+function track(event, params) {
+  try {
+    if (window.plausible) window.plausible(event, { props: params });
+    if (window.ym && SITE_CONFIG.analyticsYandexId) window.ym(SITE_CONFIG.analyticsYandexId, 'reachGoal', event, params);
+  } catch (e) {}
+}
+
+/* ============================================================
+   PWA
+   ============================================================ */
+function setupPWA() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+}
+
+/* ============================================================
+   Инициализация
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  setupPresentationLinks();
+  setupAnalytics();
+  setupPWA();
+  renderReferencesList();
+  setupReviewForm();
+  renderReviews();
+  restoreAnswers();
+  restoreResultIfAny();
+
+  const mail = $('#contact-mail');
+  if (mail && SITE_CONFIG.feedbackEmail) {
+    mail.href = 'mailto:' + SITE_CONFIG.feedbackEmail;
+    mail.textContent = SITE_CONFIG.feedbackEmail;
+  }
+
+  form.addEventListener('change', () => { updateProgress(); saveAnswers(); });
+
+  $('#reset-btn').addEventListener('click', () => {
+    form.reset();
+    updateProgress();
+    try {
+      localStorage.removeItem(STORAGE_KEYS.answers);
+      localStorage.removeItem(STORAGE_KEYS.result);
+    } catch (e) {}
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!getRadio('age')) { alert('Укажите возрастную группу.'); return; }
+    const answers = collectAnswers();
+    if (answers.complaints.length === 0 && answers.flags.length === 0) {
+      alert('Выберите хотя бы одну жалобу или красный флаг.');
+      return;
+    }
+    saveResult(answers);
+    track('result_shown', { complaints: answers.complaints.join(','), flags: answers.flags.length });
+    renderResult(answers);
+  });
+});
+</script>
+</body>
+</html>
